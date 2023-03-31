@@ -1,4 +1,5 @@
 import pygame #importar e instalar pygame
+from tkinter import *
 import os
 from pygame import mixer #reproductor de música
 pygame.init()#iniciar el juego
@@ -39,7 +40,18 @@ class Cancion_Button:
         pygame.draw.rect(screen, "light gray", self.button, 0, 5)
         pygame.draw.rect(screen, "dark gray", self.button, 3, 5)
         text = font.render(self.text, True, "black")
-        screen.blit(text, (self.pos[0] + 15, self.pos[1] + 7))       
+        screen.blit(text, (self.pos[0] + 15, self.pos[1] + 7))
+
+class Opcion_Button:
+    def __init__(self, txt, pos):
+        self.text = txt
+        self.pos = pos
+        self.button = pygame.rect.Rect((self.pos[0], self.pos[1]), (40, 40))
+    def draw(self):
+        pygame.draw.rect(screen, "light gray", self.button, 0, 5)
+        pygame.draw.rect(screen, "dark gray", self.button, 3, 5)
+        text = font.render(self.text, True, "black")
+        screen.blit(text, (self.pos[0] + 15, self.pos[1] + 7))
 
 #despliegue de botones 
 def menu():
@@ -60,6 +72,14 @@ BadLiar= Cancion_Button("Bad Liar - Imagine Dragons", (10,200))
 MyUniverse= Cancion_Button("My Universe - Coldplay (feat. BTS)", (10,250))
 reproducir= Button("Reproducir", (330, 400))
 pausa= Button("pausa", (400, 800))
+si_boton = Opcion_Button("Si", (330, 500))
+no_boton = Opcion_Button("Si", (430, 500))
+#cantidad de reproducciones
+user_text = int (use_text)#texto ingresado por el usuario
+input_rect = pygame.Rect(280,400,35,35)#rectangulo donde se escribe
+color = pygame.Color('lightblue')#color del rectangulo
+
+
 
 #loop
 run = True
@@ -104,12 +124,36 @@ while run: #pantalla se abre y se mantiene
         MissMysterious_imagen = pygame.transform.scale(MissMysterious_imagen, (300, 300))
         screen.blit(MissMysterious_imagen, (520, 150))
         reproducir.draw()
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:#para que identifique la entrada del usuario
+                if event.key == pygame.K_BACKSPACE:#para que funcione el borrar
+                    user_text = user_text[:-1]
+                else:
+                    user_text += event.unicode#para que funcionen el resto de teclas
+        text_surface = font.render(user_text, True, (255,255,255))#texto de los numeros en blanco
+        screen.blit(text_surface, (input_rect.x + 5, input_rect.y +5))
+        pygame.draw.rect(screen,color, input_rect,2)#dibuja rectangulo
+        input_rect.w = text_surface.get_width() + 30#rectangulo cambia de tamano con el texto
+
         if reproducir.button.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+            running_time = 200000
             MissMysterious_imagen= pygame.image.load(os.path.join("MusicBox", "MissMysterious.jpeg"))
             MissMysterious_cancion= pygame.mixer.music.load(os.path.join("MusicBox","MissMysterious.mp3"))
             MissMysterious_volumen= pygame.mixer.music.set_volume(0.5)
-            MissMysterious_reproducir = pygame.mixer.music.play (1)
-        menu()
+            cant_reproduc = 0
+            if canti_reproduc != user_text:
+                MissMysterious_reproducir = pygame.mixer.music.play (user_text)#hay que crear variable que almacene el user_text
+                if pygame.mixer.music.get_busy ():
+                    if pygame.mixer.music.get_pos() >= running_time:
+                        pygame.mixer.music.pause()
+                        si_boton.draw()
+                        no_boton.draw()
+                        if si_boton.button.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+                            pygame.mixer.music.unpause()
+                        else:
+                            pygame.mixer.music.stop()
+                            
+        menu()         
         regresarCanciones_boton.draw()
     if regresarCanciones_boton.button.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
         estado_menu = "lista"
